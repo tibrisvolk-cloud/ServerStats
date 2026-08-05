@@ -1,0 +1,5 @@
+name: ServerStats
+version: 1.0
+main: com.yourname.serverstats.ServerStats
+api-version: "1.21"
+depend: [IndepProfileBot]

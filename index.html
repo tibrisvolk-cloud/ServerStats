@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Статистика сервера</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #1e1e2e; color: #d9d9d9; font-family: sans-serif; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .btn { background: #FFD700; border: none; padding: 8px 16px; margin: 4px; cursor: pointer; }
+        .profile-card { background: #2e2e3e; padding: 16px; border-radius: 8px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🐾 Статистика сервера</h1>
+    <button class="btn" onclick="loadOnline(24)">24 часа</button>
+    <button class="btn" onclick="loadOnline(168)">7 дней</button>
+    <button class="btn" onclick="loadOnline(720)">30 дней</button>
+    <canvas id="onlineChart" width="800" height="300"></canvas>
+
+    <h2>Профиль игрока</h2>
+    <input id="discordIdInput" placeholder="Discord ID" style="padding:8px; width:200px;">
+    <button class="btn" onclick="loadProfile()">Показать</button>
+    <div id="profile" class="profile-card"></div>
+</div>
+
+<script>
+const API = "http://ТВОЙ_СЕРВЕР:8800";
+
+async function loadOnline(hours) {
+    const res = await fetch(`${API}/api/online?hours=${hours}`);
+    const data = await res.json();
+    const labels = data.map(d => new Date(d.time * 1000).toLocaleTimeString("ru-RU"));
+    const values = data.map(d => d.count);
+    const ctx = document.getElementById("onlineChart").getContext("2d");
+    if (window.chart) window.chart.destroy();
+    window.chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Онлайн',
+                data: values,
+                borderColor: '#FFD700',
+                backgroundColor: 'rgba(255,215,0,0.1)',
+                fill: true
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+}
+
+async function loadProfile() {
+    const discordId = document.getElementById("discordIdInput").value.trim();
+    const res = await fetch(`${API}/api/player/${discordId}/pawpass`);
+    const data = await res.json();
+    const profileDiv = document.getElementById("profile");
+    if (data.error) {
+        profileDiv.innerHTML = "❌ " + data.error;
+        return;
+    }
+    profileDiv.innerHTML = `
+        <h3>PawPass</h3>
+        <p>Уровень: ${data.level}</p>
+        <p>Опыт: ${data.xp} / ${data.nextXp}</p>
+        <p>Следующая награда: ${data.nextReward}</p>
+        <p>Общий опыт: ${data.totalXp}</p>
+    `;
+}
+
+loadOnline(24);
+</script>
+</body>
+</html>

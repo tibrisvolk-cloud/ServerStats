@@ -1,0 +1,5 @@
+# Порт веб-сервера
+port: 8800
+
+# Путь к папке IndepProfileBot относительно plugins/
+indep_data_folder: "../IndepProfileBot"
